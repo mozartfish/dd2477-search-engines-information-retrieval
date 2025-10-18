@@ -7,19 +7,18 @@
 
 package ir;
 
-
 public class KGramPostingsEntry {
-    int tokenID;
+  int tokenID;
 
-    public KGramPostingsEntry(int tokenID) {
-        this.tokenID = tokenID;
-    }
+  public KGramPostingsEntry(int tokenID) {
+    this.tokenID = tokenID;
+  }
 
-    public KGramPostingsEntry(KGramPostingsEntry other) {
-        this.tokenID = other.tokenID;
-    }
+  public KGramPostingsEntry(KGramPostingsEntry other) {
+    this.tokenID = other.tokenID;
+  }
 
-    public String toString() {
-        return tokenID + "";
-    }
+  public String toString() {
+    return tokenID + "";
+  }
 }

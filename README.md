@@ -23,9 +23,10 @@ chmod +x run_search_engine.sh
 chmod +x  run_tokenizer.sh 
 ```
 
-2. Inside the `run_search_engine.sh` file change `/info/DD2476/ir22/lab/davisWiki` to local path of where the DavisWiki is located  
+2. Inside the `run_search_engine.sh` file change `/info/DD2476/ir22/lab/davisWiki` to the releative path `../DavisWiki` of where the DavisWiki is located  
 
-3. Bash Aliases 
+## 1 - Boolean Retrieval 
+### Bash Aliases 
 ```bash 
 alias compile-all="sh ./compile_all.sh"
 alias run-persistent="sh ./run_persistent.sh"
@@ -36,7 +37,6 @@ alias run-tokenizer="sh ./run_tokenizer.sh"
 alias compile-run-search="compile-all; run-search-engine"
 ```
 
-## 1 - Boolean Retrieval 
 ### 1.1 Tokenization 
 - [Regex101](https://regex101.com/) - for testing and developing regular expressions for the tokenizer 
 ### 1.2 Basic Inverted Index 
@@ -46,4 +46,22 @@ alias compile-run-search="compile-all; run-search-engine"
 ### 1.6 What is a good query 
 ### 1.7 Inverted index as a hash table on disk 
 
+## 2 - Ranked Retrieval 
+### Bash Aliases 
+### 2.1 Ranked Retrieval 
+### 2.2 Ranked Multiword Retrieval 
+### 2.4 What is a good search result 
+### 2.5 Computing PageRank with Power Iteration + combining PageRank with TF-IDF 
+### 2.6 Cosine Similairty with Euclidean Length 
+### 2.7 - Monte-Carlo PageRank Approximation 
+### 2.8 - Hubs and Authorities 
 
+## 3 - Relevance Feedback and Tolerant Retrieval 
+### Bash Aliases 
+
+### 3.1 Relevance Feedback 
+### 3.2 Evaluation using non-binary judgements 
+### 3.3 K-gram Index 
+### 3.4 - Wildcard Queries 
+### 3.5 - Isolated spelling correction of one-word queries
+### 3.6 -  Isolated spelling correction of multiword queries 

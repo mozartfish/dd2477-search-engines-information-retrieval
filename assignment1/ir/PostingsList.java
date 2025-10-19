@@ -19,7 +19,7 @@ public class PostingsList {
    *
    * @param docID document the term appears in
    * @param score score associated with this particular document and term
-   * @param position position where the term appears
+   * @param position position where the term appears in the document
    */
   public void add(int docID, double score, int position) {
     PostingsEntry newEntry = new PostingsEntry(docID, score, position);

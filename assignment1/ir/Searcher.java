@@ -49,10 +49,78 @@ public class Searcher {
     // phrase query
     if (queryType == QueryType.PHRASE_QUERY) {
       System.out.println("PHRASE QUERY");
+      return phraseQuery(query);
     }
     return null;
   }
 
+  /**
+   * Phrase Query
+   *
+   * @param query information requested by user
+   * @return PostingsList containing data requested by user
+   */
+  private PostingsList phraseQuery(Query query) {
+    ArrayList<PostingsList> postingsLists = getPostingsList(query);
+
+    // size(postingsLists) == 0
+    if (postingsLists.isEmpty()) {
+      return new PostingsList();
+    }
+
+    PostingsList result = postingsLists.getFirst();
+    for (int i = 1; i < postingsLists.size(); i++) {
+      result = positionalIntersect(result, postingsLists.get(i));
+    }
+
+    return result;
+  }
+
+  /**
+   * Compute the positional set intersection of two posting lists
+   *
+   * @param p1 first postings list
+   * @param p2 second postings list
+   * @return postings list that contains the positional intersection of p1 and p2 postings lists
+   */
+  private PostingsList positionalIntersect(PostingsList p1, PostingsList p2) {
+    PostingsList result = new PostingsList();
+    int i = 0;
+    int j = 0;
+
+    while (i < p1.size() && j < p2.size()) {
+      if (p1.get(i).docID == p2.get(j).docID) {
+        ArrayList<Integer> positions = new ArrayList<>();
+        for (int pos1 : p1.get(i).positionList) {
+          for (int pos2 : p2.get(j).positionList) {
+            // check if first term comes after next term
+            if (pos2 == pos1 + 1) {
+              positions.add(pos2);
+            }
+          }
+        }
+        // add the document containing position intersections to result
+        if (!positions.isEmpty()) {
+          PostingsEntry postingEntry = new PostingsEntry(p2.get(j).docID, 1, positions);
+          result.add(postingEntry);
+        }
+        i++;
+        j++;
+      } else if (p1.get(i).docID < p2.get(j).docID) {
+        i++;
+      } else {
+        j++;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Multi-Word Query
+   *
+   * @param query information requested by user
+   * @return PostingList containing data requested by user
+   */
   private PostingsList multiWordQuery(Query query) {
     ArrayList<PostingsList> postingsLists = getPostingsList(query);
 
@@ -81,7 +149,7 @@ public class Searcher {
    *
    * @param p1 first postings list
    * @param p2 second postings list
-   * @return postings list that contains the intersection of p1 and p2 postings list
+   * @return postings list that contains the intersection of p1 and p2 postings lists
    */
   private PostingsList intersect(PostingsList p1, PostingsList p2) {
     PostingsList result = new PostingsList();

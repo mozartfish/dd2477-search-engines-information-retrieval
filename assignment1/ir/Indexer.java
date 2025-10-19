@@ -59,6 +59,7 @@ public class Indexer {
         } else {
           // First register the document and get a docID
           int docID = generateDocID();
+//          System.out.println("docID: " + docID);
           if (docID % 1000 == 0) System.err.println("Indexed " + docID + " files");
           try {
             Reader reader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);

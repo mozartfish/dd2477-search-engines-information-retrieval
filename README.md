@@ -46,7 +46,6 @@ alias compile-run-search="compile-all; run-search-engine"
 - `patterns.txt`- **Last Modified** - `10/18/2025`
 
 ### 1.2 Basic Inverted Index
-
 - `PostingsEntry.java`- **Last Modified** - `10/19/2025`
 - `PostingsList.java` - **Last Modified** - `10/19/2025`
 - `HashedIndex.java` - **Last Modified** - `10/19/2025`
@@ -66,6 +65,9 @@ alias compile-run-search="compile-all; run-search-engine"
 ### 1.6 What is a good query
 
 ### 1.7 Inverted index as a hash table on disk
+- `PostingsEntry.java`- **Last Modified** - `10/19/2025`
+- `PostingsList.java` - **Last Modified** - `10/19/2025`
+- `PersistentHashedIndex.java` - **Last Modified** - `10/19/2025`
 
 ## 2 - Ranked Retrieval
 

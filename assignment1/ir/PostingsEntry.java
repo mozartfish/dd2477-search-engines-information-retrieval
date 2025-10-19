@@ -112,12 +112,10 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
       result.add(p1.get(i));
       i++;
     }
-
     while (j < p2.size()) {
       result.add(p2.get(j));
       j++;
     }
-
     return result;
   }
 }

@@ -80,6 +80,21 @@ public class Query {
   }
 
   /**
+   * String representation of a query
+   *
+   * @return a string representation of a query
+   */
+  String queryToString() {
+    StringBuilder sb = new StringBuilder();
+    for (QueryTerm q : queryterm) {
+      sb.append(q.term).append(",");
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("\n");
+    return sb.toString();
+  }
+
+  /**
    * Expands the Query using Relevance Feedback
    *
    * @param results The results of the previous query.

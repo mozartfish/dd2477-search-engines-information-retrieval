@@ -64,10 +64,17 @@ alias compile-run-search="compile-all; run-search-engine"
 
 ### 1.6 What is a good query
 
-### 1.7 Inverted index as a hash table on disk
+### 1.7 Inverted Index as a hash table on Disk
+- To run this feature create a new local directory called `local-disk` which represents the disk storage. 
+- To run persistent mode do the following: 
+1. Change the index in `Engine.java` to **PersistentHashedIndex**
+2. Run `compile-run-search`
+3. Once all the files have been indexed, close the search engine
+4. Run `run-persistent`
 - `PostingsEntry.java`- **Last Modified** - `10/19/2025`
 - `PostingsList.java` - **Last Modified** - `10/19/2025`
 - `PersistentHashedIndex.java` - **Last Modified** - `10/19/2025`
+- `Engine.java` - **Last Modified** - `10/19/2025` 
 
 ## 2 - Ranked Retrieval
 

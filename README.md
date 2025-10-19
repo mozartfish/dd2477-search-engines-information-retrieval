@@ -39,7 +39,13 @@ alias compile-run-search="compile-all; run-search-engine"
 
 ### 1.1 Tokenization 
 - [Regex101](https://regex101.com/) - for testing and developing regular expressions for the tokenizer 
+- `patterns.txt`- **Last Modified** - `10/18/2025`
 ### 1.2 Basic Inverted Index 
+- `PostingsEntry.java`- **Last Modified** - `10/19/2025`
+- `PostingsList.java` - **Last Modified** - `10/19/2025`
+- `Searcher.java` - **Last Modified** - 
+
+
 ### 1.3 Multiword Queries 
 ### 1.4 Phrase Queries 
 ### 1.5 What is a good search result 

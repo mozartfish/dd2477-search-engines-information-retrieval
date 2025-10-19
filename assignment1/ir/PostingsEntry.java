@@ -60,6 +60,7 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
    *
    * @return String representation of a postings entry object - documentId, score, and positionList
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(docID).append("^").append(score).append(":");
@@ -67,7 +68,6 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
       sb.append(offset).append(",");
     }
     sb.deleteCharAt(sb.length() - 1);
-
     return sb.toString();
   }
 
@@ -80,7 +80,9 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     return Double.compare(other.score, score);
   }
 
-  /** Merge the position indexes of two postings lists into a single list in sorted order
+  /**
+   * Merge the position indexes of two postings lists into a single list in sorted order
+   *
    * @param p1 position list of the first entry
    * @param p2 position list of the second entry
    * @return list of merge position indexes from the two entry inputs

@@ -51,7 +51,57 @@ public class Searcher {
       System.out.println("PHRASE QUERY");
       return phraseQuery(query);
     }
+    // ranked query
+    if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.TF_IDF) {
+      System.out.println("TF_IDF RANKING QUERY");
+      return tf_idfQuery(query, normType);
+    }
+    if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.PAGERANK) {
+      System.out.println("PAGE RANK QUERY");
+    }
     return null;
+  }
+
+  private PostingsList tf_idfQuery(Query query, NormalizationType normType) {
+    // # documents in corpus - 17,478 documents in davisWiki Corpus
+    int N = index.docLengths.size();
+    double[] scores = new double[N];
+    PostingsList result = new PostingsList();
+
+    for (int i = 0; i < query.queryterm.size(); i++) {
+      PostingsList postings = index.getPostings(query.queryterm.get(i).term);
+      if (postings != null) {
+        // # documents in corpus that contain term (document frequency)
+        int df = postings.size();
+        // inverse document-frequency(idf)
+        double idf = Math.log((double) N / df);
+        for (int j = 0; j < postings.size(); j++) {
+          int docID = postings.get(j).docID;
+          // # occurrences of token in document (term frequency)
+          double tf = postings.get(j).score;
+          // TF_IDF weight
+          scores[docID] += tf * idf * query.queryterm.get(i).weight;
+        }
+      }
+    }
+
+    // normalization
+    for (int k = 0; k < N; k++) {
+      if (scores[k] > 0) {
+        if (normType == NormalizationType.NUMBER_OF_WORDS) {
+          scores[k] /= index.docLengths.get(k);
+        }
+        if (normType == NormalizationType.EUCLIDEAN) {
+          System.out.println("Euclidean Distance");
+        }
+        result.add(k, scores[k], 0);
+      }
+    }
+
+    // rank results from most relevant to least relevant based on their scores
+    result.sort();
+
+    return result;
   }
 
   /**

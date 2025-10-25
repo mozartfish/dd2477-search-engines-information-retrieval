@@ -19,6 +19,9 @@ public interface Index {
   /** Mapping from document identifier to document length. */
   public HashMap<Integer, Integer> docLengths = new HashMap<Integer, Integer>();
 
+  /** Mapping document identifier to document euclidean distance. */
+  public HashMap<Integer, Double> docEuclideanDistances = new HashMap<Integer, Double>();
+
   /** Inserts a token into the index. */
   public void insert(String token, int docID, int offset);
 

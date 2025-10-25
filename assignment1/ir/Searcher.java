@@ -37,27 +37,26 @@ public class Searcher {
     System.out.println("Query terms: " + query.queryToString());
     // intersection queries
     if (queryType == QueryType.INTERSECTION_QUERY) {
-      System.out.println("INTERSECTION QUERY");
       if (query.size() == 1) {
-        System.out.println("ONE-WORD QUERY");
+        System.out.println(queryType + ": " + "ONE_WORD_QUERY");
         return oneWordQuery(query);
       } else {
-        System.out.println("MULTI-WORD QUERY");
+        System.out.println(queryType + ": " + "MULTI_WORD_QUERY");
         return multiWordQuery(query);
       }
     }
     // phrase query
     if (queryType == QueryType.PHRASE_QUERY) {
-      System.out.println("PHRASE QUERY");
+      System.out.println(queryType);
       return phraseQuery(query);
     }
     // ranked query
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.TF_IDF) {
-      System.out.println("TF_IDF RANKING QUERY");
+      System.out.println(queryType + " " + rankingType);
       return tf_idfQuery(query, normType);
     }
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.PAGERANK) {
-      System.out.println("PAGE RANK QUERY");
+      System.out.println(queryType + " " + rankingType);
     }
     return null;
   }
@@ -78,7 +77,7 @@ public class Searcher {
         for (int j = 0; j < postings.size(); j++) {
           int docID = postings.get(j).docID;
           // # occurrences of token in document (term frequency)
-          double tf = postings.get(j).score;
+          double tf = postings.get(j).positionList.size();
           // TF_IDF weight
           scores[docID] += tf * idf * query.queryterm.get(i).weight;
         }
@@ -86,13 +85,14 @@ public class Searcher {
     }
 
     // normalization
+    System.out.println("NORMALIZATION TYPE: " + normType.toString());
     for (int k = 0; k < N; k++) {
       if (scores[k] > 0) {
         if (normType == NormalizationType.NUMBER_OF_WORDS) {
           scores[k] /= index.docLengths.get(k);
         }
         if (normType == NormalizationType.EUCLIDEAN) {
-          System.out.println("Euclidean Distance");
+          scores[k] /= index.docEuclideanDistances.get(k);
         }
         result.add(k, scores[k], 0);
       }

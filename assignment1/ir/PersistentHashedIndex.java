@@ -41,7 +41,7 @@ public class PersistentHashedIndex implements Index {
   public static final String DOCINFO_FNAME = "docInfo";
 
   /** The dictionary hash table on disk can fit this many entries. */
-//  public static final long TABLESIZE = 15 * 611953L;
+  //  public static final long TABLESIZE = 15 * 611953L;
   public static final long TABLESIZE = 6 * 611953L;
 
   /** The dictionary hash table is stored in this file. */
@@ -131,7 +131,95 @@ public class PersistentHashedIndex implements Index {
 
     try {
       readDocInfo();
+      readEuclideanDistance();
     } catch (FileNotFoundException e) {
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Read euclidean distances from disk and load them into search engine for performing ranked query
+   */
+  private void readEuclideanDistance() {
+    try {
+      File file = new File(INDEXDIR + "/docEuclideanDistances");
+      FileReader freader = new FileReader(file);
+      BufferedReader br = new BufferedReader(freader);
+      String line;
+      while ((line = br.readLine()) != null) {
+        String[] data = line.split(";");
+        docEuclideanDistances.put(Integer.parseInt(data[0]), Double.parseDouble(data[1]));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /** Compute euclidean distances for all documents and write them to disk */
+  private void writeEuclideanDistances() {
+    try {
+      BufferedWriter writer =
+          new BufferedWriter(new FileWriter(INDEXDIR + "/docEuclideanDistances", false));
+      // # documents in the corpus
+      int N = docLengths.size();
+      // docID -> (term -> TF_IDF weight(tf * idf)
+      HashMap<Integer, HashMap<String, Double>> docTermWeights = new HashMap<>();
+      for (int docID : docNames.keySet()) {
+        docTermWeights.put(docID, new HashMap<>());
+      }
+
+      // compute term weights for each term in index
+      for (Map.Entry<String, PostingsList> entry : index.entrySet()) {
+        String term = entry.getKey();
+        PostingsList postings = entry.getValue();
+        // # documents in the corpus that contain token (document frequency)
+        int df = postings.size();
+        // inverse-document frequency (idf)
+        double idf = Math.log((double) N / df);
+        // compute and record term weight (tf_idf) for each document in postings list
+        for (int i = 0; i < postings.size(); i++) {
+          int docID = postings.get(i).docID;
+          // # of occurrences of token in document (term frequency)
+          double tf = postings.get(i).positionList.size();
+          double score = tf * idf;
+          // record term weight in document
+          docTermWeights.get(docID).put(term, score);
+        }
+      }
+
+      // compute euclidean distance
+      for (int docID : docTermWeights.keySet()) {
+        // get the weights of each token in a document
+        HashMap<String, Double> termWeights = docTermWeights.get(docID);
+        double distance = 0;
+        for (double weight : termWeights.values()) {
+          distance += weight * weight;
+        }
+
+        // write to disk
+        writer.write(docID + ";" + Math.sqrt(distance) + "\n");
+      }
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Read euclidean distances from disk and load them into search engine for performing ranked query
+   * retrieval
+   */
+  private void readEuclideanDistances() {
+    try {
+      File file = new File(INDEXDIR + "/docEuclideanDistances");
+      FileReader freader = new FileReader(file);
+      BufferedReader br = new BufferedReader(freader);
+      String line;
+      while ((line = br.readLine()) != null) {
+        String[] data = line.split(";");
+        docEuclideanDistances.put(Integer.parseInt(data[0]), Double.parseDouble(data[1]));
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -372,9 +460,15 @@ public class PersistentHashedIndex implements Index {
 
   /** Write index to file after indexing is done. */
   public void cleanup() {
-      System.err.println(index.size() + " unique words");
-      System.err.print("Writing index to disk...");
-      writeIndex();
-      System.err.println("done!");
+    System.err.println(index.size() + " unique words");
+    System.err.print("Writing index to disk...");
+    writeIndex();
+    System.err.println("done!");
+    System.err.println("Writing euclidean distances to disk...");
+    writeEuclideanDistances();
+    System.err.println("done!");
+    System.err.println("Reading euclidean distances from disk...");
+    readEuclideanDistances();
+    System.err.println("done!");
   }
 }

@@ -81,14 +81,29 @@ alias compile-run-search="compile-all; run-search-engine"
 ### Bash Aliases
 
 ### 2.1 Ranked Retrieval
+- `Searcher.java` - **Last Modified** - `10/25/2025`
 
 ### 2.2 Ranked Multiword Retrieval
+- `Searcher.java` - **Last Modified** - `10/25/2025`
 
 ### 2.4 What is a good search result
 
 ### 2.5 Computing PageRank with Power Iteration + combining PageRank with TF-IDF
 
 ### 2.6 Cosine Similarity with Euclidean Length
+- `Index.java` - **Last Modified** - `10/25/2025` 
+- `PersistentHashedIndex.java` - **Last Modified** - `10/25/2025`
+- `Engine.java` - **Last Modified** - `10/25/2025` 
+- To run this feature create a new local directory called `local-disk` which represents the disk storage. 
+- To run persistent mode do the following: 
+1. Change the index in `Engine.java` to **PersistentHashedIndex**
+2. Run `compile-run-search`
+3. Once all the files have been indexed, close the search engine
+4. Run `run-persistent`
+- `PostingsEntry.java`- **Last Modified** - `10/19/2025`
+- `PostingsList.java` - **Last Modified** - `10/19/2025`
+- `PersistentHashedIndex.java` - **Last Modified** - `10/19/2025`
+- `Engine.java` - **Last Modified** - `10/19/2025` 
 
 ### 2.7 - Monte-Carlo PageRank Approximation
 

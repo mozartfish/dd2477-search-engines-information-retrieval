@@ -79,6 +79,11 @@ alias compile-run-search="compile-all; run-search-engine"
 ## 2 - Ranked Retrieval
 
 ### Bash Aliases
+```bash
+alias compile-run-pagerank="javac PageRank.java; java -Xmx1g PageRank ../linksDavis.txt"
+alias compile-run-mc-pagerank="javac PageRank.java; java -Xmx1g PageRank ../linksSvwiki.txt"
+alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp classes ir.HITSRanker ../linksDavis.txt ../page-rank-disk/davisTitles.txt"
+```
 
 ### 2.1 Ranked Retrieval
 - `Searcher.java` - **Last Modified** - `10/25/2025`
@@ -99,7 +104,7 @@ alias compile-run-search="compile-all; run-search-engine"
 4. Run `run-persistent`
 - `Index.java` - **Last Modified** - `10/25/2025` 
 - `PersistentHashedIndex.java` - **Last Modified** - `10/25/2025`
-- `Engine.java` - **Last Modified** - `10/25/2025` 
+- `Engine.java` - **Last Modified** - `10/25/2025`
 
 ### 2.7 - Monte-Carlo PageRank Approximation
 

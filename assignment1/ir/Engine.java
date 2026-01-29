@@ -14,10 +14,16 @@ import java.io.File;
 public class Engine {
 
   /** The inverted index. */
-  //  Index index = new HashedIndex();
+//  Index index = new HashedIndex();
 
   // Assignment 1.7: Comment the line above and uncomment the next line
-  Index index = new PersistentHashedIndex();
+    Index index = new PersistentHashedIndex();
+
+  /** PageRank */
+  PageRank pageRank;
+
+  /** HITSRanker */
+  HITSRanker hitsRank;
 
   /** The indexer creating the search index. */
   Indexer indexer;
@@ -52,6 +58,12 @@ public class Engine {
   /** The file containing the logo. */
   String pic_file = "";
 
+  /** The links file for pagerank */
+  String links_file = null;
+
+  /** The titles file for pagerank */
+  String titles_file = null;
+
   /** The file containing the pageranks. */
   String rank_file = "";
 
@@ -64,7 +76,9 @@ public class Engine {
   public Engine(String[] args) {
     decodeArgs(args);
     indexer = new Indexer(index, kgIndex, patterns_file);
-    searcher = new Searcher(index, kgIndex);
+    pageRank = new PageRank(links_file, titles_file);
+    hitsRank = new HITSRanker(links_file, titles_file, index);
+    searcher = new Searcher(index, kgIndex, pageRank, hitsRank);
     gui = new SearchGUI(this);
     gui.init();
     /*
@@ -105,6 +119,16 @@ public class Engine {
         i++;
         if (i < args.length) {
           patterns_file = args[i++];
+        }
+      } else if ("-links".equals(args[i])) {
+        i++;
+        if (i < args.length) {
+          links_file = args[i++];
+        }
+      } else if ("-titles".equals(args[i])) {
+        i++;
+        if (i < args.length) {
+          titles_file = args[i++];
         }
       } else if ("-l".equals(args[i])) {
         i++;

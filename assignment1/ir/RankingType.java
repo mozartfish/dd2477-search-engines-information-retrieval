@@ -11,5 +11,6 @@ package ir;
 public enum RankingType {
   TF_IDF,
   PAGERANK,
-  COMBINATION
+  COMBINATION,
+  HITS
 }

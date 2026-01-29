@@ -80,9 +80,9 @@ alias compile-run-search="compile-all; run-search-engine"
 
 ### Bash Aliases
 ```bash
-alias compile-run-pagerank="javac PageRank.java; java -Xmx1g PageRank ../linksDavis.txt"
-alias compile-run-mc-pagerank="javac PageRank.java; java -Xmx1g PageRank ../linksSvwiki.txt"
-alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp classes ir.HITSRanker ../linksDavis.txt ../page-rank-disk/davisTitles.txt"
+alias compile-run-pagerank="javac PageRank.java; java -Xmx1g PageRank ./linksDavis.txt"
+alias compile-run-mc-pagerank="javac PageRank.java; java -Xmx1g PageRank ./linksSvwiki.txt"
+alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp classes ir.HITSRanker ../rank-disk/linksDavis.txt ../rank-disk/davisTitles.txt"
 ```
 
 ### 2.1 Ranked Retrieval
@@ -94,6 +94,13 @@ alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp clas
 ### 2.4 What is a good search result
 
 ### 2.5 Computing PageRank with Power Iteration + combining PageRank with TF-IDF
+- To run this feature create a new local directory called `rank-disk` which represents the storage for all things ranking. 
+1. Run `compile-run-pagerank`
+2. Run `compile-all`
+3. Run `run-search-engine`
+- `PageRank.java` - **Last Modified** - `01/29/2026`
+- `Engine.java` - **Last Modified** - `01/29/2026`
+- `Searcher.java` - **Last Modified** - `01/29/2026`
 
 ### 2.6 Cosine Similarity with Euclidean Length
 - To run this feature create a new local directory called `local-disk` which represents the disk storage. 
@@ -107,8 +114,26 @@ alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp clas
 - `Engine.java` - **Last Modified** - `10/25/2025`
 
 ### 2.7 - Monte-Carlo PageRank Approximation
+1. Run `compile-run-mc-pagerank`
+- `PageRank.java` - **Last Modified** - `01/29/2026`
 
 ### 2.8 - Hubs and Authorities
+1. Run `compile-run-hits`
+2. Run `compile-all`
+3. Run `run-search-engine`
+- `HITSRanker.java` - **Last Modified** - `01/29/2026`
+- `Engine.java` - **Last Modified** - `01/29/2026`
+- `Searcher.java` - **Last Modified** - `01/29/2025`
+- `RankingType.java` - **Last Modified** - `01/29/2025`
+- `SearchGUI.java` - **Last Modified** - `01/29/2025`
+- `run_persistent.sh` - **Last Modified** - `01/29/2025`
+- `run_search_engine.sh` - **Last Modified** - `01/29/2025`
+
+**At this point everything should work for PersistentHashedIndex**
+1. Change the index in `Engine.java` to **PersistentHashedIndex**
+2. Run `compile-run-search`
+3. Once all the files have been indexed, close the search engine
+4. Run `run-persistent`
 
 ## 3 - Relevance Feedback and Tolerant Retrieval
 

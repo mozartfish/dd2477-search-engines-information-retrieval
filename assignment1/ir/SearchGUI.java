@@ -30,7 +30,7 @@ public class SearchGUI extends JFrame {
   /** The query type (either intersection, phrase, or ranked). */
   QueryType queryType = QueryType.INTERSECTION_QUERY;
 
-  /** The ranking type (either tf-idf, pagerank, or combination). */
+  /** The ranking type (either tf-idf, pagerank, hits or combination). */
   RankingType rankingType = RankingType.TF_IDF;
 
   /** The type of normalization for tf-idf computation */
@@ -66,6 +66,7 @@ public class SearchGUI extends JFrame {
   JRadioButtonMenuItem rankedItem = new JRadioButtonMenuItem("Ranked retrieval");
   JRadioButtonMenuItem tfidfItem = new JRadioButtonMenuItem("tf-idf");
   JRadioButtonMenuItem pagerankItem = new JRadioButtonMenuItem("PageRank");
+  JRadioButtonMenuItem hitsItem = new JRadioButtonMenuItem("HITS");
   JRadioButtonMenuItem combinationItem = new JRadioButtonMenuItem("Combination");
   JRadioButtonMenuItem numberOfWordsItem = new JRadioButtonMenuItem("Number of words");
   JRadioButtonMenuItem euclideanLengthItem = new JRadioButtonMenuItem("Euclidean length");
@@ -101,6 +102,7 @@ public class SearchGUI extends JFrame {
     optionsMenu.add(rankedItem);
     rankingMenu.add(tfidfItem);
     rankingMenu.add(pagerankItem);
+    rankingMenu.add(hitsItem);
     rankingMenu.add(combinationItem);
     normalizationMenu.add(numberOfWordsItem);
     normalizationMenu.add(euclideanLengthItem);
@@ -109,6 +111,7 @@ public class SearchGUI extends JFrame {
     queries.add(rankedItem);
     ranking.add(tfidfItem);
     ranking.add(pagerankItem);
+    ranking.add(hitsItem);
     ranking.add(combinationItem);
     normalization.add(numberOfWordsItem);
     normalization.add(euclideanLengthItem);
@@ -244,6 +247,14 @@ public class SearchGUI extends JFrame {
           }
         };
     pagerankItem.addActionListener(setPagerankRanking);
+
+    Action setHitsRanking =
+        new AbstractAction() {
+          public void actionPerformed(ActionEvent e) {
+            rankingType = RankingType.HITS;
+          }
+        };
+    hitsItem.addActionListener(setHitsRanking);
 
     Action setCombinationRanking =
         new AbstractAction() {

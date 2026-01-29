@@ -123,11 +123,11 @@ alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp clas
 3. Run `run-search-engine`
 - `HITSRanker.java` - **Last Modified** - `01/29/2026`
 - `Engine.java` - **Last Modified** - `01/29/2026`
-- `Searcher.java` - **Last Modified** - `01/29/2025`
-- `RankingType.java` - **Last Modified** - `01/29/2025`
-- `SearchGUI.java` - **Last Modified** - `01/29/2025`
-- `run_persistent.sh` - **Last Modified** - `01/29/2025`
-- `run_search_engine.sh` - **Last Modified** - `01/29/2025`
+- `Searcher.java` - **Last Modified** - `01/29/2026`
+- `RankingType.java` - **Last Modified** - `01/29/2026`
+- `SearchGUI.java` - **Last Modified** - `01/29/2026`
+- `run_persistent.sh` - **Last Modified** - `01/29/2026`
+- `run_search_engine.sh` - **Last Modified** - `01/29/2026`
 
 **At this point everything should work for PersistentHashedIndex**
 1. Change the index in `Engine.java` to **PersistentHashedIndex**

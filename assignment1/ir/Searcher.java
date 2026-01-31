@@ -9,6 +9,8 @@ package ir;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 /** Searches an index for results of a query. */
 public class Searcher {
@@ -49,18 +51,34 @@ public class Searcher {
     //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
     //
     System.out.println("QUERY_TERMS -> " + query.queryToString());
+    // wildcard query processing
+    boolean containsWildCard = false;
+    for (Query.QueryTerm queryTerm : query.queryterm) {
+      if (queryTerm.term.contains("*")) {
+        containsWildCard = true;
+        break;
+      }
+    }
     // intersection queries
     if (queryType == QueryType.INTERSECTION_QUERY) {
       if (query.size() == 1) {
         System.out.println(queryType + " -> " + "ONE_WORD_QUERY");
         return oneWordQuery(query);
       } else {
+        if (containsWildCard) {
+          System.out.println(queryType + " -> " + "WILDCARD_MULTI_WORD_QUERY");
+          return wildCardMultiWordQuery(query);
+        }
         System.out.println(queryType + " -> " + "MULTI_WORD_QUERY");
         return multiWordQuery(query);
       }
     }
     // phrase query
     if (queryType == QueryType.PHRASE_QUERY) {
+      if (containsWildCard) {
+        System.out.println(queryType + " -> " + "WILDCARD_PHRASE_QUERY");
+        return wildCardPhraseQuery(query);
+      }
       System.out.println(queryType);
       return phraseQuery(query);
     }
@@ -68,25 +86,254 @@ public class Searcher {
     // tf-idf
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.TF_IDF) {
       System.out.println(queryType + " " + rankingType);
+      if (containsWildCard) {
+        System.out.println(
+            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
+        query = wildCardRankQuery(query);
+      }
       return tf_idfQuery(query, normType);
     }
     // pagerank
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.PAGERANK) {
+      if (containsWildCard) {
+        System.out.println(
+            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
+        query = wildCardRankQuery(query);
+      }
       System.out.println(queryType + " " + rankingType);
       return pageRankQuery(query);
     }
     // combination - tf-idf + pagerank
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.COMBINATION) {
+      if (containsWildCard) {
+        System.out.println(
+            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
+        query = wildCardRankQuery(query);
+      }
       System.out.println(queryType + " " + rankingType);
       return combinationQuery(query, normType);
     }
 
     // HITS (Hypertext-Induced Topic Selection), Hubs and Authorities
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.HITS) {
+      if (containsWildCard) {
+        System.out.println(
+            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
+        query = wildCardRankQuery(query);
+      }
       System.out.println(queryType + " " + rankingType);
       return hitsRankQuery(query);
     }
     return null;
+  }
+
+  /**
+   * Wildcard query for performing rank retrieval - TF_IDF, PageRank, Combination, HITS
+   *
+   * @param query information requested by user
+   * @return PostingList containing data requested by user
+   */
+  private Query wildCardRankQuery(Query query) {
+    Query wildCardQuery = new Query();
+    for (Query.QueryTerm queryTerm : query.queryterm) {
+      if (queryTerm.term.contains("*")) {
+        HashSet<String> terms = wildCardQueryTerms(queryTerm.term);
+        for (String term : terms) {
+          Query.QueryTerm queryterm = wildCardQuery.new QueryTerm(term, queryTerm.weight);
+          wildCardQuery.queryterm.add(queryterm);
+        }
+      } else {
+        Query.QueryTerm queryterm = wildCardQuery.new QueryTerm(queryTerm.term, queryTerm.weight);
+        wildCardQuery.queryterm.add(queryterm);
+      }
+    }
+    return wildCardQuery;
+  }
+
+  /**
+   * Wildcard phrase query
+   *
+   * @param query information requested by user
+   * @return PostingList containing data requested by user
+   */
+  private PostingsList wildCardPhraseQuery(Query query) {
+    ArrayList<PostingsList> postingsLists = new ArrayList<>();
+    for (int i = 0; i < query.queryterm.size(); i++) {
+      HashSet<String> terms = wildCardQueryTerms(query.queryterm.get(i).term);
+      PostingsList postingsList = new PostingsList();
+      for (String term : terms) {
+        PostingsList postings = index.getPostings(term);
+        if (postings != null) {
+          postingsList = intersectUnion(postingsList, postings);
+        }
+      }
+      postingsLists.add(postingsList);
+    }
+
+    // size(postingsLists) == 0
+    if (postingsLists.isEmpty()) {
+      return new PostingsList();
+    }
+
+    PostingsList result = postingsLists.getFirst();
+    for (int i = 1; i < postingsLists.size(); i++) {
+      result = positionalIntersect(result, postingsLists.get(i));
+    }
+
+    return result;
+  }
+
+  /**
+   * Wildcard multi-word query
+   *
+   * @param query - information request by user
+   * @return PostingList containing data requested by user
+   */
+  private PostingsList wildCardMultiWordQuery(Query query) {
+    ArrayList<PostingsList> postingsLists = new ArrayList<>();
+    for (int i = 0; i < query.queryterm.size(); i++) {
+      HashSet<String> terms = wildCardQueryTerms(query.queryterm.get(i).term);
+      PostingsList postingsList = new PostingsList();
+      for (String term : terms) {
+        PostingsList postings = index.getPostings(term);
+        if (postings != null) {
+          postingsList = intersectUnion(postingsList, postings);
+        }
+      }
+      postingsLists.add(postingsList);
+    }
+
+    // size(postingsLists) == 0
+    if (postingsLists.isEmpty()) {
+      return new PostingsList();
+    }
+
+    // size(postingsLists) == 2
+    PostingsList p1 = postingsLists.getFirst();
+    PostingsList p2 = postingsLists.get(1);
+    PostingsList result = intersect(p1, p2);
+
+    // size(postingsLists) > 2
+    for (int i = 2; i < postingsLists.size(); i++) {
+      PostingsList postings = postingsLists.get(i);
+      if (postings != null) {
+        result = intersect(result, postings);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Compute the intersection and union for wildcard queries
+   *
+   * @param p1 - first postings list
+   * @param p2 - second postings list
+   * @return PostingList containing data from the intersection and union
+   */
+  private PostingsList intersectUnion(PostingsList p1, PostingsList p2) {
+    PostingsList result = new PostingsList();
+    int i = 0;
+    int j = 0;
+    while (i < p1.size() && j < p2.size()) {
+      if (p1.get(i).docID == p2.get(j).docID) {
+        if (result.size() == 0 || result.get(result.size() - 1).docID != p1.get(i).docID) {
+          PostingsEntry postingEntry =
+              new PostingsEntry(p1.get(i).docID, p1.get(i).score, p1.get(i).positionList);
+          postingEntry.positionList =
+              postingEntry.mergePositionList(postingEntry.positionList, p2.get(j).positionList);
+          result.add(postingEntry);
+        } else {
+          result.get(result.size() - 1).score += p1.get(i).score + p2.get(j).score;
+          result.get(result.size() - 1).positionList =
+              result
+                  .get(result.size() - 1)
+                  .mergePositionList(
+                      result.get(result.size() - 1).positionList, p1.get(i).positionList);
+          result.get(result.size() - 1).positionList =
+              result
+                  .get(result.size() - 1)
+                  .mergePositionList(
+                      result.get(result.size() - 1).positionList, p2.get(j).positionList);
+        }
+        i++;
+        j++;
+      } else if (p1.get(i).docID < p2.get(j).docID) {
+        result.add(p1.get(i));
+        i++;
+      } else {
+        result.add(p2.get(j));
+        j++;
+      }
+    }
+
+    while (i < p1.size()) {
+      result.add(p1.get(i));
+      i++;
+    }
+    while (j < p2.size()) {
+      result.add(p2.get(j));
+      j++;
+    }
+
+    return result;
+  }
+
+  /**
+   * This function processes wildcard queries and returns a set of all terms related to the wildcard
+   * term in the query requested by the user
+   *
+   * @param queryTerm term in the users query
+   * @return a set of all terms related to the user wildcard query
+   */
+  private HashSet<String> wildCardQueryTerms(String queryTerm) {
+    //    1. token contains no wildcards
+    //    2. care* - find all docs containing any word beginning with care
+    //    3. *less - find all words ending in less
+    //    4. colo*r - find all words beginning with colo and ending with r
+    HashSet<String> result = new HashSet<>();
+    if (!queryTerm.contains("*")) {
+      result.add(queryTerm);
+    } else if (queryTerm.endsWith("*")) {
+      queryTerm = "^" + queryTerm;
+      String kgram = queryTerm.substring(queryTerm.length() - 3, queryTerm.length() - 1);
+      List<KGramPostingsEntry> kgramPostings = kgIndex.getPostings(kgram);
+      String term;
+      for (KGramPostingsEntry kgramEntry : kgramPostings) {
+        term = kgIndex.getTermByID(kgramEntry.tokenID);
+        if (term.startsWith(queryTerm.substring(1, queryTerm.length() - 1))) {
+          result.add(term);
+        }
+      }
+    } else if (queryTerm.startsWith("*")) {
+      queryTerm = queryTerm + "$";
+      String kgram = queryTerm.substring(1, 3);
+      List<KGramPostingsEntry> kgramPostings = kgIndex.getPostings(kgram);
+      String term;
+      for (KGramPostingsEntry kgramEntry : kgramPostings) {
+        term = kgIndex.getTermByID(kgramEntry.tokenID);
+        if (term.endsWith(queryTerm.substring(1, queryTerm.length() - 1))) {
+          result.add(term);
+        }
+      }
+    } else {
+      queryTerm = "^" + queryTerm + "$";
+      int wildCardIndex = queryTerm.indexOf("*");
+      String firstKGram = queryTerm.substring(wildCardIndex - 2, wildCardIndex);
+      String secondKGram = queryTerm.substring(wildCardIndex + 1, wildCardIndex + 3);
+      List<KGramPostingsEntry> kgramP1 = kgIndex.getPostings(firstKGram);
+      List<KGramPostingsEntry> kgramP2 = kgIndex.getPostings(secondKGram);
+      List<KGramPostingsEntry> kgramIntersect = kgIndex.intersect(kgramP1, kgramP2);
+      String term;
+      for (KGramPostingsEntry kgramEntry : kgramIntersect) {
+        term = kgIndex.getTermByID(kgramEntry.tokenID);
+        if (term.startsWith(queryTerm.substring(1, wildCardIndex))
+            && term.endsWith(queryTerm.substring(wildCardIndex + 1, queryTerm.length() - 1))) {
+          result.add(term);
+        }
+      }
+    }
+    return result;
   }
 
   /**

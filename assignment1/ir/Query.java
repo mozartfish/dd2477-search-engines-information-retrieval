@@ -8,6 +8,7 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.nio.charset.*;
@@ -102,8 +103,75 @@ public class Query {
    * @param engine The search engine object
    */
   public void relevanceFeedback(PostingsList results, boolean[] docIsRelevant, Engine engine) {
-    //
-    //  YOUR CODE HERE
-    //
+    // Rocchio 1971 SMART Algorithm
+    // Calculate the number of relevant documents
+    int relevantDocs = 0;
+    Query modifiedQuery = new Query();
+    for (boolean b : docIsRelevant) {
+      if (b) {
+        relevantDocs++;
+      }
+    }
+    if (relevantDocs == 0) {
+      return;
+    }
+
+    for (QueryTerm queryTerm : queryterm) {
+      QueryTerm newTerm = new QueryTerm(queryTerm.term, queryTerm.weight * alpha);
+      modifiedQuery.queryterm.add(newTerm);
+    }
+
+    for (int i = 0; i < docIsRelevant.length; i++) {
+      if (docIsRelevant[i]) {
+        PostingsEntry entry = results.get(i);
+        String docName = engine.index.docNames.get(entry.docID);
+        HashMap<String, Double> documentTermFrequency = documentTermFrequency(docName);
+        for (String term : documentTermFrequency.keySet()) {
+          boolean found = false;
+          for (QueryTerm queryTerm : modifiedQuery.queryterm) {
+            if (queryTerm.term.equals(term)) {
+              queryTerm.weight += (beta * documentTermFrequency.get(term)) / relevantDocs;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            QueryTerm queryTerm =
+                new QueryTerm(term, beta * documentTermFrequency.get(term) / relevantDocs);
+            modifiedQuery.queryterm.add(queryTerm);
+          }
+        }
+      }
+    }
+
+    queryterm = modifiedQuery.queryterm;
+  }
+
+  /**
+   * This function returns the frequency of terms in a document. The Rocchio SMART 1971 algorithm
+   * centroid calculations require documents to be represented using the vector space model. In
+   * order for the documents in the results query to be represented in the same vector space as the
+   * inverted index vector space, the same tokenizer is used to ensure terms are standardized using
+   * the same criteria as the inverted index. I found this article describing a data structure
+   * called a Forward Index which does the inverse of the Inverted Index - mapping documents ->
+   * words. Resource: https://www.geeksforgeeks.org/difference-inverted-index-forward-index/
+   *
+   * @param docName name of the document
+   * @return hash map: term -> term frequency
+   */
+  public HashMap<String, Double> documentTermFrequency(String docName) {
+    HashMap<String, Double> termFrequency = new HashMap<>();
+    try {
+      Reader reader = new InputStreamReader(new FileInputStream(docName), StandardCharsets.UTF_8);
+      Tokenizer tokenizer = new Tokenizer(reader, true, false, true, "patterns.txt");
+      while (tokenizer.hasMoreTokens()) {
+        String token = tokenizer.nextToken();
+        // record the term frequency
+        termFrequency.merge(token, 1.0, Double::sum);
+      }
+    } catch (IOException e) {
+      System.err.println("Warning: IOException during indexing.");
+    }
+    return termFrequency;
   }
 }

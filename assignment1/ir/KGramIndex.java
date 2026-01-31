@@ -46,27 +46,55 @@ public class KGramIndex {
   }
 
   /** Get intersection of two postings lists */
-  private List<KGramPostingsEntry> intersect(
+  public List<KGramPostingsEntry> intersect(
       List<KGramPostingsEntry> p1, List<KGramPostingsEntry> p2) {
-    //
-    // YOUR CODE HERE
-    //
-    return null;
+    List<KGramPostingsEntry> result = new ArrayList<>();
+    int i = 0;
+    int j = 0;
+    while (i < p1.size() && j < p2.size()) {
+      if (p1.get(i).tokenID == p2.get(j).tokenID) {
+        result.add(new KGramPostingsEntry(p1.get(i).tokenID));
+        i++;
+        j++;
+      } else if (p1.get(i).tokenID < p2.get(j).tokenID) {
+        i++;
+      } else {
+        j++;
+      }
+    }
+
+    return result;
   }
 
   /** Inserts all k-grams from a token into the index. */
   public void insert(String token) {
-    //
-    // YOUR CODE HERE
-    //
+    if (getIDByTerm(token) != null) {
+      return;
+    }
+    int termID = generateTermID();
+    KGramPostingsEntry kgramEntry = new KGramPostingsEntry(termID);
+    String kgramToken = "^" + token + "$";
+    term2id.put(token, termID);
+    id2term.put(termID, token);
+
+    for (int i = 0; i < kgramToken.length() - K + 1; i++) {
+      String kgram = kgramToken.substring(i, i + K);
+      if (!index.containsKey(kgram)) {
+        index.put(kgram, new ArrayList<>());
+      }
+      if (!index.get(kgram).contains(kgramEntry)) {
+        index.get(kgram).add(kgramEntry);
+      }
+    }
   }
 
   /** Get postings for the given k-gram */
   public List<KGramPostingsEntry> getPostings(String kgram) {
-    //
-    // YOUR CODE HERE
-    //
-    return null;
+    if (index.containsKey(kgram)) {
+      return index.get(kgram);
+    } else {
+      return new ArrayList<>();
+    }
   }
 
   /** Get id of a term */
@@ -109,6 +137,27 @@ public class KGramIndex {
       }
     }
     return decodedArgs;
+  }
+
+  /** Print out different kgram postings */
+  void printDavisWikiKGrams() {
+    List<KGramPostingsEntry> vePostings = getPostings("ve");
+    if (vePostings == null) {
+      System.out.println("Number of terms containing 've' bigram: " + 0);
+    } else {
+      System.out.println("Number of terms containing 've' bigram: " + vePostings.size());
+    }
+    List<KGramPostingsEntry> thPostings = getPostings("th");
+    List<KGramPostingsEntry> hePostings = getPostings("he");
+    if (thPostings == null) {
+      thPostings = new ArrayList<>();
+    }
+    if (hePostings == null) {
+      hePostings = new ArrayList<>();
+    }
+    List<KGramPostingsEntry> thAndHePostings = intersect(thPostings, hePostings);
+    System.out.println(
+        "Number of terms containing both bigrams 'th' and 'he': " + thAndHePostings.size());
   }
 
   public static void main(String[] arguments) throws FileNotFoundException, IOException {

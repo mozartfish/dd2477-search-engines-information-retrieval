@@ -7,6 +7,9 @@
 
 package ir;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.io.File;
 
@@ -17,7 +20,10 @@ public class Engine {
   Index index = new HashedIndex();
 
   // Assignment 1.7: Comment the line above and uncomment the next line
-//    Index index = new PersistentHashedIndex();
+  //      Index index = new PersistentHashedIndex();
+
+  /** The indexer creating the search index. */
+  Indexer indexer;
 
   /** PageRank */
   PageRank pageRank;
@@ -25,23 +31,20 @@ public class Engine {
   /** HITSRanker */
   HITSRanker hitsRank;
 
-  /** The indexer creating the search index. */
-  Indexer indexer;
-
   /** The searcher used to search the index. */
   Searcher searcher;
 
   /** K-gram index */
-//  KGramIndex kgIndex = null;
+  //  KGramIndex kgIndex = null;
 
   // Assignment 3: Comment the line above and uncomment the next line
-   KGramIndex kgIndex = new KGramIndex(2);
+  KGramIndex kgIndex = new KGramIndex(2);
 
   /** Spell checker */
-  SpellChecker speller;
+  //  SpellChecker speller;
 
   // Assignment 3: Comment the line above and uncomment the next line
-  // SpellChecker = new SpellChecker( index, kgIndex );
+  SpellChecker speller = new SpellChecker(index, kgIndex);
 
   /** The engine GUI. */
   SearchGUI gui;
@@ -55,14 +58,14 @@ public class Engine {
   /** The patterns matching non-standard words (e-mail addresses, etc.) */
   String patterns_file = null;
 
-  /** The file containing the logo. */
-  String pic_file = "";
-
-  /** The links file for pagerank */
+  /** The links file for PageRank */
   String links_file = null;
 
-  /** The titles file for pagerank */
+  /** The titles file for PageRank */
   String titles_file = null;
+
+  /** The file containing the logo. */
+  String pic_file = "";
 
   /** The file containing the pageranks. */
   String rank_file = "";
@@ -97,6 +100,7 @@ public class Engine {
         }
         long elapsedTime = System.currentTimeMillis() - startTime;
         gui.displayInfoText(String.format("Indexing done in %.1f seconds.", elapsedTime / 1000.0));
+        kgIndex.printDavisWikiKGrams();
         index.cleanup();
       }
     } else {

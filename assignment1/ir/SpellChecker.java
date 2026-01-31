@@ -7,7 +7,7 @@
 
 package ir;
 
-import java.util.List;
+import java.util.*;
 
 public class SpellChecker {
   /** The regular inverted index to be used by the spell checker */
@@ -60,10 +60,7 @@ public class SpellChecker {
    * <code>intersection</code> elements.
    */
   private double jaccard(int szA, int szB, int intersection) {
-    //
-    // YOUR CODE HERE
-    //
-    return 0;
+    return (double) intersection / (szA + szB - intersection);
   }
 
   /**
@@ -71,11 +68,23 @@ public class SpellChecker {
    * insert (cost 1) => delete (cost 1) => substitute (cost 2)
    */
   private int editDistance(String s1, String s2) {
-    //
-    // YOUR CODE HERE
-    //
+    int[][] cache = new int[s1.length() + 1][s2.length() + 1];
+    for (int i = 0; i <= s1.length(); i++) {
+      for (int j = 0; j <= s2.length(); j++) {
+        if (i == 0) {
+          cache[i][j] = j;
+        } else if (j == 0) {
+          cache[i][j] = i;
+        } else {
+          cache[i][j] =
+              Math.min(
+                  cache[i - 1][j - 1] + (s1.charAt(i - 1) == s2.charAt(j - 1) ? 0 : 2),
+                  Math.min(cache[i - 1][j] + 1, cache[i][j - 1] + 1));
+        }
+      }
+    }
 
-    return -1;
+    return cache[s1.length()][s2.length()];
   }
 
   /**
@@ -83,11 +92,116 @@ public class SpellChecker {
    * suggestions for spelling correction.
    */
   public String[] check(Query query, int limit) {
-    //
-    // YOUR CODE HERE
-    //
+
+    int numQueryTerms = query.queryterm.size();
+    // size(query terms) == 0
+    if (numQueryTerms == 0) {
+      return new String[0];
+    }
+
+    // one word query
+    if (numQueryTerms == 1) {
+      String term = query.queryterm.getFirst().term;
+      // check if the term is spelled correctly
+      // return the term if it exists in the index
+      if (index.getPostings(term) != null) {
+        return new String[] {term};
+      }
+
+      // get all possible corrections for mispelled word
+      List<KGramStat> suggestedCorrections = rankedCorrections(term);
+
+      // return up to limit or suggestedcorrection size whichever is smaller
+      String[] result = new String[Math.min(limit, suggestedCorrections.size())];
+      for (int i = 0; i < result.length; i++) {
+        result[i] = suggestedCorrections.get(i).getToken();
+      }
+      return result;
+    }
 
     return null;
+  }
+
+  /**
+   * ranking single word correction queries
+   *
+   * @param term word to be corrected
+   * @return a list of ranked possible words
+   */
+  protected List<KGramStat> rankedCorrections(String term) {
+    //    1. do union search in the kgram index for term
+    //    2. calculate the jacquard coefficient between term and words
+    //    3. if jc > threshold for word w, calculate edit distance between w and term
+    //    4. if edit distance < other threshhold, w is a possible correction
+    //    add w to list of corrections
+
+    // kGrams for mispelled words
+    HashSet<String> kGrams = new HashSet<>();
+    String kGramToken = "^" + term + "$";
+    for (int i = 0; i <= kGramToken.length() - kgIndex.getK(); i++) {
+      kGrams.add(kGramToken.substring(i, i + kgIndex.getK()));
+    }
+
+    // kgram union search
+    HashSet<String> words = new HashSet<>();
+    for (String kgram : kGrams) {
+      List<KGramPostingsEntry> kgramPostings = kgIndex.getPostings(kgram);
+      if (kgramPostings != null) {
+        for (KGramPostingsEntry entry : kgramPostings) {
+          words.add(kgIndex.id2term.get(entry.tokenID));
+        }
+      }
+    }
+
+    // k-gram overlap - jaccard coefficients
+    HashMap<String, Double> jaccardCoeffs = new HashMap<>();
+
+    // construct kgrams for words for jaccard computation
+    for (String word : words) {
+      HashSet<String> wordKGrams = new HashSet<>();
+      String wordkGramToken = "^" + word + "$";
+      for (int i = 0; i <= wordkGramToken.length() - kgIndex.getK(); i++) {
+        wordKGrams.add(wordkGramToken.substring(i, i + kgIndex.getK()));
+      }
+
+      // compute jaccard coefficient
+      int szA = kGrams.size();
+      int szB = wordKGrams.size();
+      int intersection = 0;
+      for (String kgram : kGrams) {
+        if (wordKGrams.contains(kgram)) {
+          intersection++;
+        }
+      }
+      double jaccardCoeff = jaccard(szA, szB, intersection);
+
+      // filter by jaccard threshold
+      if (jaccardCoeff >= JACCARD_THRESHOLD) {
+        jaccardCoeffs.put(word, jaccardCoeff);
+      }
+    }
+
+    // calculate edit distance for jaccard filtered words
+    ArrayList<KGramStat> result = new ArrayList<>();
+    for (String candidateWord : jaccardCoeffs.keySet()) {
+      int editDistance = editDistance(term, candidateWord);
+      if (editDistance <= MAX_EDIT_DISTANCE) {
+        double jaccardCoeff = jaccardCoeffs.get(candidateWord);
+        PostingsList postings = index.getPostings(candidateWord);
+        // rank the scores
+        double kStatScore;
+
+        if (postings != null) {
+          kStatScore = (double) editDistance / (postings.size() * jaccardCoeff);
+        } else {
+          kStatScore = (double) editDistance / jaccardCoeff;
+        }
+        result.add(new KGramStat(candidateWord, kStatScore));
+      }
+    }
+    Collections.sort(result);
+
+    return result;
   }
 
   /**
@@ -96,9 +210,6 @@ public class SpellChecker {
    * corrected phrases.
    */
   private List<KGramStat> mergeCorrections(List<List<KGramStat>> qCorrections, int limit) {
-    //
-    // YOUR CODE HERE
-    //
     return null;
   }
 }

@@ -154,6 +154,7 @@ alias compile-run-hits="javac -cp . -d classes ir/HITSRanker.java; java -cp clas
 4. Run `run-persistent`
 
 ## 3 - Relevance Feedback and Tolerant Retrieval
+
 At this point everything was built and tested for `HashedIndex`. If everything is implemented properly it should also work for `PersistentHashedIndex`
 
 ### Bash Aliases
@@ -168,15 +169,27 @@ alias compile-run-kgrams-test-2="compile-all; kgrams-test-2"
 ```
 
 ### 3.1 Relevance Feedback
+
 - `Query.java` - **Last Modified** - `01/31/2026`
 
 ### 3.2 Evaluation using non-binary judgements
 
 ### 3.3 K-gram Index
-- `KgramIndex.java` - **Last Modified** - `01/31/2026` 
+
+- `KgramIndex.java` - **Last Modified** - `01/31/2026`
 
 ### 3.4 - Wildcard Queries
 
+- `Engine.java` - **Last Modified** - `01/31/2026`
+- `Searcher.java` - **Last Modified** - `01/31/2026`
+
 ### 3.5 - Isolated spelling correction of one-word queries
 
+- `Engine.java` - **Last Modified** - `01/31/2026`
+- `SpellChecker.java` - **Last Modified** - `01/31/2026`
+
 ### 3.6 - Isolated spelling correction of multiword queries
+
+- `SpellChecker.java` - **Last Modified** - `02/01/2026`
+- `Searcher.java` - **Last Modified** - `02/01/2026`
+- `SearchGUI.java` - **Last Modified** - `02/01/2026`

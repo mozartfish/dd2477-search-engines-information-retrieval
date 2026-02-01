@@ -119,7 +119,35 @@ public class SpellChecker {
       return result;
     }
 
-    return null;
+    // multi-word query
+    List<List<KGramStat>> queryTermCorrections = new ArrayList<>();
+    for (Query.QueryTerm queryTerm : query.queryterm) {
+      String term = queryTerm.term;
+      // check if term is spelled correctly
+      if (index.getPostings(term) != null) {
+        List<KGramStat> correctSpelling = new ArrayList<>();
+        correctSpelling.add(new KGramStat(term, 1.0));
+        queryTermCorrections.add(correctSpelling);
+      } else {
+        List<KGramStat> suggestedCorrections = rankedCorrections(term);
+        if (suggestedCorrections.isEmpty()) {
+          suggestedCorrections = new ArrayList<>();
+          suggestedCorrections.add(new KGramStat(term, Double.MAX_VALUE));
+        }
+        queryTermCorrections.add(suggestedCorrections);
+      }
+    }
+
+    // merge corrections
+    List<KGramStat> mergedPhrases = mergeCorrections(queryTermCorrections, limit);
+
+    // return to limit or mergedPhrases size whichever is smaller
+    String[] result = new String[Math.min(limit, mergedPhrases.size())];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = mergedPhrases.get(i).getToken();
+    }
+
+    return result;
   }
 
   /**
@@ -210,6 +238,25 @@ public class SpellChecker {
    * corrected phrases.
    */
   private List<KGramStat> mergeCorrections(List<List<KGramStat>> qCorrections, int limit) {
-    return null;
+    if (qCorrections.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<KGramStat> currentTermCorrectionList = qCorrections.getFirst();
+    List<KGramStat> queryPhrases = new ArrayList<>(currentTermCorrectionList);
+    for (int i = 1; i < qCorrections.size(); i++) {
+      currentTermCorrectionList = qCorrections.get(i);
+      List<KGramStat> currentPhrases = new ArrayList<>();
+      for (KGramStat phrase : queryPhrases) {
+        for (KGramStat currentTerm : currentTermCorrectionList) {
+          currentPhrases.add(
+              new KGramStat(
+                  phrase.getToken() + " " + currentTerm.getToken(),
+                  phrase.score * currentTerm.score));
+        }
+      }
+      Collections.sort(currentPhrases);
+      queryPhrases = currentPhrases.subList(0, Math.min(limit, currentPhrases.size()));
+    }
+    return queryPhrases;
   }
 }

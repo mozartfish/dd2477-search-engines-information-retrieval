@@ -47,9 +47,6 @@ public class Searcher {
    */
   public PostingsList search(
       Query query, QueryType queryType, RankingType rankingType, NormalizationType normType) {
-    //
-    //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
-    //
     System.out.println("QUERY_TERMS -> " + query.queryToString());
     // wildcard query processing
     boolean containsWildCard = false;
@@ -86,68 +83,25 @@ public class Searcher {
     // tf-idf
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.TF_IDF) {
       System.out.println(queryType + " " + rankingType);
-      if (containsWildCard) {
-        System.out.println(
-            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
-        query = wildCardRankQuery(query);
-      }
       return tf_idfQuery(query, normType);
     }
     // pagerank
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.PAGERANK) {
-      if (containsWildCard) {
-        System.out.println(
-            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
-        query = wildCardRankQuery(query);
-      }
       System.out.println(queryType + " " + rankingType);
       return pageRankQuery(query);
     }
     // combination - tf-idf + pagerank
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.COMBINATION) {
-      if (containsWildCard) {
-        System.out.println(
-            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
-        query = wildCardRankQuery(query);
-      }
       System.out.println(queryType + " " + rankingType);
       return combinationQuery(query, normType);
     }
 
     // HITS (Hypertext-Induced Topic Selection), Hubs and Authorities
     if (queryType == QueryType.RANKED_QUERY && rankingType == RankingType.HITS) {
-      if (containsWildCard) {
-        System.out.println(
-            "WILD_CARD_RANK_QUERY -> Build new query containing all terms in the wildcard query");
-        query = wildCardRankQuery(query);
-      }
       System.out.println(queryType + " " + rankingType);
       return hitsRankQuery(query);
     }
     return null;
-  }
-
-  /**
-   * Wildcard query for performing rank retrieval - TF_IDF, PageRank, Combination, HITS
-   *
-   * @param query information requested by user
-   * @return PostingList containing data requested by user
-   */
-  private Query wildCardRankQuery(Query query) {
-    Query wildCardQuery = new Query();
-    for (Query.QueryTerm queryTerm : query.queryterm) {
-      if (queryTerm.term.contains("*")) {
-        HashSet<String> terms = wildCardQueryTerms(queryTerm.term);
-        for (String term : terms) {
-          Query.QueryTerm queryterm = wildCardQuery.new QueryTerm(term, queryTerm.weight);
-          wildCardQuery.queryterm.add(queryterm);
-        }
-      } else {
-        Query.QueryTerm queryterm = wildCardQuery.new QueryTerm(queryTerm.term, queryTerm.weight);
-        wildCardQuery.queryterm.add(queryterm);
-      }
-    }
-    return wildCardQuery;
   }
 
   /**
@@ -558,6 +512,10 @@ public class Searcher {
    */
   private PostingsList positionalIntersect(PostingsList p1, PostingsList p2) {
     PostingsList result = new PostingsList();
+    if (p1 == null || p2 == null) {
+      return result;
+    }
+
     int i = 0;
     int j = 0;
 
@@ -626,6 +584,9 @@ public class Searcher {
    */
   private PostingsList intersect(PostingsList p1, PostingsList p2) {
     PostingsList result = new PostingsList();
+    if (p1 == null || p2 == null) {
+      return result;
+    }
     int i = 0;
     int j = 0;
     while (i < p1.size() && j < p2.size()) {
@@ -654,7 +615,11 @@ public class Searcher {
   private ArrayList<PostingsList> getPostingsList(Query query) {
     ArrayList<PostingsList> postingsList = new ArrayList<>();
     for (int i = 0; i < query.size(); i++) {
-      postingsList.add(index.getPostings(query.queryterm.get(i).term));
+      PostingsList postings = index.getPostings(query.queryterm.get(i).term);
+      if (postings == null) {
+        return postingsList;
+      }
+      postingsList.add(postings);
     }
     return postingsList;
   }

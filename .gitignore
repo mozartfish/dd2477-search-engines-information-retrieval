@@ -1,0 +1,5 @@
+*.zip 
+*.tar.gz
+.idea/
+.DS_STORE
+local-disk/
